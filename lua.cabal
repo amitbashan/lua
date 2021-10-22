@@ -1,0 +1,66 @@
+cabal-version:      3.0
+name:               lua
+version:            5.1.5
+license:            MIT
+license-file:       LICENSE
+author:             Amit Bashan
+copyright:          Copyright © 2021 Amit Bashan. All rights reserved.
+category:           Language
+
+library
+  exposed-modules:
+    Language.Lua.Syntax.Operation.Unary,
+    Language.Lua.Syntax.Operation.Binary,
+    Language.Lua.Syntax,
+    Language.Lua.Syntax.Lexer.Lexeme,
+    Language.Lua.Syntax.Lexer.Token,
+    Language.Lua.Syntax.Lexer,
+    Language.Lua.Syntax.Parser,
+    Language.Lua.Bytecode.Instruction.Argument,
+    Language.Lua.Bytecode.Instruction,
+    Language.Lua.Compiler.Configuration.Limit,
+    Language.Lua.Compiler.Configuration.Size,
+    Language.Lua.Compiler.Configuration.Binary,
+    Language.Lua.Compiler.RegisterAllocator.Error,
+    Language.Lua.Compiler.RegisterAllocator,
+    Language.Lua.Compiler.Value,
+    Language.Lua.Compiler.Function,
+    Language.Lua.Compiler.Environment.RegisterAllocator,
+    Language.Lua.Compiler.Environment.Function.ConstantTable,
+    Language.Lua.Compiler.Environment,
+    Language.Lua.Compiler.Context,
+    Language.Lua.Compiler.Monad,
+    Language.Lua.Compiler.Error,
+    Language.Lua.Compiler,
+  build-depends:
+    array,
+    base,
+    bytestring,
+    containers,
+    lens,
+    mtl,
+    text,
+    utf8-string,
+    split,
+  build-tool-depends:
+    alex:alex,
+    happy:happy,
+  hs-source-dirs:   lib
+  default-language: Haskell2010
+  ghc-options:
+    -Wall
+    -Wno-name-shadowing
+    -Wno-unused-do-bind
+    -Wno-incomplete-patterns
+
+executable lua
+  main-is:          Main.hs
+  other-modules:    CommandLine
+  build-depends:
+    base,
+    lens,
+    lua,
+    mtl,
+    optparse-applicative,
+  hs-source-dirs:   app
+  default-language: Haskell2010
