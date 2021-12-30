@@ -341,7 +341,7 @@ parseError (Token _ (Position _ line column) token, expectedTokens) =
                 ++ show column
                 ++ ", near `"
                 ++ token
-                ++ "."
+                ++ "`"
            )
         ++ ". Expected: "
         ++ intercalate ", " expectedTokens

@@ -27,19 +27,9 @@ allocate = do
       return $ Register $ fromIntegral index
     Nothing -> throw OutOfRegisters
 
-free :: Seq Register -> State RegisterAllocator ()
-free registers = do
-  registerAllocator <- gets _registers
-
-  put $
-    RegisterAllocator $
-      foldl
-        ( flip
-            ( \(Register register) ->
-                update
-                  (fromIntegral register)
-                  False
-            )
-        )
-        registerAllocator
-        registers
+free :: Register -> State RegisterAllocator ()
+free (Register register) = do
+  registers
+    %= update
+      (fromIntegral register)
+      False

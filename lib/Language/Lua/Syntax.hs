@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
@@ -372,7 +373,7 @@ instance Compile Expression Argument.Register where
          )
 
     traverse_
-      (free . Sequence.singleton)
+      free
       (Argument.inner right ^? _Left)
 
     return destination
@@ -416,7 +417,7 @@ instance Compile Expression Argument.Register where
                ]
          )
 
-    free (Sequence.singleton destination)
+    free destination
 
     compile right Nothing
   compile (Binary (Operation.Binary.Miscellaneous Operation.Binary.Concatenate) left right) _ = do
@@ -435,7 +436,7 @@ instance Compile Expression Argument.Register where
                (right + 1)
          )
 
-    free (Sequence.singleton right)
+    free right
 
     return left
     where
@@ -597,7 +598,7 @@ instance Compile Call Argument.Register where
     case call of
       RegularCall object arguments -> do
         object <- compile object Nothing
-        argumentsRegisters <- compile arguments Nothing
+        argumentsRegisters :: Sequence.Seq Argument.Register <- compile arguments Nothing
 
         function . code
           %= ( |>
@@ -610,7 +611,7 @@ instance Compile Call Argument.Register where
                    savedReturnValues
              )
 
-        free argumentsRegisters
+        mapM_ free argumentsRegisters
 
         return object
       MethodCall object method arguments -> do
@@ -625,7 +626,7 @@ instance Compile Call Argument.Register where
                    method
              )
 
-        argumentsRegisters <- compile arguments Nothing
+        argumentsRegisters :: Sequence.Seq Argument.Register <- compile arguments Nothing
 
         function . code
           %= ( |>
@@ -635,7 +636,7 @@ instance Compile Call Argument.Register where
                    savedReturnValues
              )
 
-        free argumentsRegisters
+        mapM_ free argumentsRegisters
 
         return object
     where
@@ -695,7 +696,7 @@ instance Compile Statement () where
                         Just register -> do
                           traverse
                             ( \expression -> do
-                                free (Sequence.singleton register)
+                                free register
 
                                 compile
                                   @Expression
@@ -780,11 +781,10 @@ instance Compile Statement () where
                                  register
                            )
 
-                      free (Sequence.singleton object)
+                      free object
 
                       return $ Argument.inner register ^? _Left
-                    >>= traverse_
-                      (free . Sequence.singleton)
+                    >>= traverse_ free
           )
           pairs
           <* (savedReturnValues .= Nothing)
@@ -944,9 +944,7 @@ instance Compile Statement () where
 
           function . symbolMap %= Map.delete variable
 
-          free $
-            Sequence.fromList
-              [start, end, step, step + 1]
+          mapM_ free [start, end, step, step + 1]
       )
       Nothing
   compile (GenericFor variables expressions body) _ = do
@@ -956,7 +954,9 @@ instance Compile Statement () where
         @Int
         ( LoopBlockState $ do
             expressions <-
-              compile (Sequence.take 3 expressions) Nothing
+              compile
+                (padRight 3 Nil expressions)
+                Nothing
             variables <-
               compile
                 ( LocalVariables
@@ -982,7 +982,7 @@ instance Compile Statement () where
                  )
 
             mapM_
-              free
+              (mapM_ free)
               [expressions, variables]
 
             return bodySize
@@ -994,6 +994,12 @@ instance Compile Statement () where
              Instruction.Jump
                (- bodySize - 2)
          )
+    where
+      padRight :: Int -> a -> Sequence.Seq a -> Sequence.Seq a
+      padRight n a sequence =
+        if Sequence.length sequence > n
+          then Sequence.take n sequence
+          else sequence <> Sequence.replicate (n - Sequence.length sequence) a
   compile (CallStatement call) _ =
     compile
       @Call
@@ -1001,7 +1007,6 @@ instance Compile Statement () where
       call
       Nothing
       >>= free
-        . Sequence.singleton
 
 instance Compile Condition Int where
   compile (Condition expression body) _ = do
@@ -1021,7 +1026,7 @@ instance Compile Condition Int where
                flag
          )
 
-    free (Sequence.singleton condition')
+    free condition'
 
     conditionIndex <-
       gets (^. function . code)

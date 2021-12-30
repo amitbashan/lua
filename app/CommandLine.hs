@@ -2,10 +2,7 @@ module CommandLine where
 
 import Options.Applicative
 
-data Options = Options
-  { input :: FilePath,
-    output :: FilePath
-  }
+newtype Options = Options {input :: FilePath}
 
 optionsParserInfo :: ParserInfo Options
 optionsParserInfo =
@@ -20,18 +17,8 @@ parseOptions :: Parser Options
 parseOptions =
   Options
     <$> parseInput
-    <*> parseOutput
 
 parseInput :: Parser String
 parseInput =
   strArgument $
     metavar "INPUT_FILE"
-
-parseOutput :: Parser String
-parseOutput =
-  strOption
-    ( long "output"
-        <> short 'o'
-        <> metavar "OUTPUT_FILE"
-        <> value "luac.out"
-    )

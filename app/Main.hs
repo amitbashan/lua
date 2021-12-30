@@ -4,7 +4,6 @@ module Main where
 
 import CommandLine
 import Control.Exception
-import Control.Lens
 import Control.Monad.State
 import Language.Lua.Bytecode.Instruction as Instruction
 import Language.Lua.Bytecode.Instruction.Argument as Argument
@@ -18,7 +17,7 @@ import System.Exit
 
 main :: IO ()
 main = do
-  Options input output <- execParser optionsParserInfo
+  Options input <- execParser optionsParserInfo
   sourceCode <-
     catch @IOError
       (readFile input)
@@ -30,4 +29,4 @@ main = do
         execState
           (compile @FunctionSkeleton @() block Nothing)
           (Environment.new Nothing Nothing)
-    Left syntaxError -> error syntaxError
+    Left other -> error other

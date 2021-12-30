@@ -19,8 +19,8 @@ allocate = do
 
   return register
 
-free :: Sequence.Seq Register -> CompileMonad a ()
-free registers =
+free :: Register -> CompileMonad a ()
+free register =
   zoom
     (function . registerAllocator)
-    (RegisterAllocator.free registers)
+    (RegisterAllocator.free register)
