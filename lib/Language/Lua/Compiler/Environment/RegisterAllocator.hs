@@ -1,7 +1,6 @@
 module Language.Lua.Compiler.Environment.RegisterAllocator where
 
 import Control.Lens
-import qualified Data.Sequence as Sequence
 import Language.Lua.Bytecode.Instruction.Argument
 import Language.Lua.Compiler.Environment
 import Language.Lua.Compiler.Function
